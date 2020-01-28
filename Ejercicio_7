@@ -1,0 +1,37 @@
+####Ejercicio Numero 7, Consultas en bases de datos Sql y MongoDB  
+
+
+######### Querys SQL ####################
+
+Consulta 1 
+
+Select A.rut, A.nombre, A.apellido
+From arrendatario as A, arrienda as B, casa as C 
+Where (A.id=B.id_arrendatario and
+	C.id = B.id_casa and
+	lower (C.calle)= "av.vitacura" and
+	C.numero = 4380 and
+	lower (C.comuna) = "vitacura");
+
+Consulta 2
+
+	Select D.rut, D.nombre, D.apellido
+	From dueño as D, Casas as C
+	Where D.id = C.id_dueño
+	Group by D.rut, D.Nombre, D.apellido
+	Having count(C.id) >= 3;
+
+Consulta 3 
+
+	Select D.rut, D.nombre, D.apellido, SUM(A.deuda) as Deuda Total
+	From dueño as D, casa as C, Arrienda as A
+	Where D.id= C.id_dueño and
+		C.id=A.id_casa
+	Group by D.rut, D.nombre, D.apellido;
+
+######### Querys MongoDB ####################
+
+
+
+
+

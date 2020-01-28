@@ -1,9 +1,8 @@
 ####Ejercicio Numero 7, Consultas en bases de datos Sql y MongoDB  
 
+####################################################################3######### Querys SQL ###################################################################################
 
-######### Querys SQL ####################
-
-Consulta 1 
+###################################### Consulta 1 ########################################### 
 
 Select A.rut, A.nombre, A.apellido
 From arrendatario as A, arrienda as B, casa as C 
@@ -13,7 +12,7 @@ Where (A.id=B.id_arrendatario and
 	C.numero = 4380 and
 	lower (C.comuna) = "vitacura");
 
-Consulta 2
+###################################### Consulta 2 ###########################################
 
 	Select D.rut, D.nombre, D.apellido
 	From dueño as D, Casas as C
@@ -21,7 +20,7 @@ Consulta 2
 	Group by D.rut, D.Nombre, D.apellido
 	Having count(C.id) >= 3;
 
-Consulta 3 
+###################################### Consulta 3 ###########################################
 
 	Select D.rut, D.nombre, D.apellido, SUM(A.deuda) as Deuda Total
 	From dueño as D, casa as C, Arrienda as A
@@ -29,7 +28,154 @@ Consulta 3
 		C.id=A.id_casa
 	Group by D.rut, D.nombre, D.apellido;
 
-######### Querys MongoDB ####################
+####################################################################3######### Querys MongoDB ################################################################################
+
+
+###################################### Consulta 1 ###########################################
+db.arrendatario.aggregate([
+
+    // Join arrienda
+    {
+        $lookup:{
+            from: "arrienda",       // other table name
+            localField: "id_arriendatario",  
+            foreignField: "id_arriendatario", 
+            as: "arrienda_info"         // alias for userinfo table
+        }
+    },
+    $unwind: "$arrienda_info"
+    // Join casa
+    {
+        $lookup:{
+            from: "casa", 
+            localField: "id_casa", 
+            foreignField: "id",
+            as: "arrienda_casa"
+        }
+    },
+
+    $unwind: "$arrienda_casa"
+    
+    // Condiciones
+    {
+        $match:{
+            $and:[{"id"="$arrienda_info.id_arrendatario , 
+            "$arrienda_casa.id" : "$arrienda.info.id_casa", 
+            "$arrienda_casa.calle" : "av.vitacura",
+            "$arrienda_casa.comuna" : "vitacura"
+            "$arrienda_casa.numero" : 4380,
+             } ]
+        }
+    },
+
+    // Vistas
+    {   
+        $project:{
+            rut:1,
+            nombre : 1,
+            apellido : 1,
+            id :0,
+            
+        } 
+    }
+]);
+
+###################################### Consulta 2 ###########################################
+db.dueño.aggregate([
+
+    // Join casa
+    {
+        $lookup:{
+            from: "casa", 
+            localField: "id_casa", 
+            foreignField: "id",
+            as: "dueño_casa"
+        }
+    },
+        $unwind: "$dueño_casa"
+    { 
+        $group: {
+             _id: { rut: "$rut", nombre: "$nombre", apellido: "$apellido" },
+               contador: { $sum: 1 } 
+               } },
+    
+    // Condiciones
+    {
+        $match:{
+            $and:[{"id"="$dueño_casa.id_dueño" ,
+                contador: { $gt: 2 } 
+             } ]
+        }
+    },
+
+    // Vistas
+    {   
+        $project:{
+            rut:1,
+            nombre : 1,
+            apellido : 1,
+            contador : 1,
+            id :0,
+            
+        } 
+    }
+]);
+
+###################################### Consulta 3 ###########################################
+
+
+db.dueño.aggregate([
+
+    // Join arrienda
+    {
+        $lookup:{
+            from: "arrienda",       // other table name
+            localField: "id_arriendatario",  
+            foreignField: "id_arriendatario", 
+            as: "arrienda_info"         // alias for userinfo table
+        }
+    },
+    $unwind: "$arrienda_info"
+    // Join casa
+    {
+        $lookup:{
+            from: "casa", 
+            localField: "id_casa", 
+            foreignField: "id",
+            as: "casa_info"
+        }
+    },
+
+    $unwind: "$casa_info"
+
+    { 
+        $group: {
+             _id: { rut: "$rut", nombre: "$nombre", apellido: "$apellido" },
+               deuda_total: { $sum: $arriend_info.deuda } 
+               } },
+    
+    // Condiciones
+    {
+        $match:{
+            $and:[{"id"="$casa_info.id_dueño",
+            "id"="$casa_info.id_dueño 
+            "$casa_info.id"="$arrienda_info.id_casa"
+             } ]
+        }
+    },
+
+    // Vistas
+    {   
+        $project:{
+            rut:1,
+            nombre : 1,
+            apellido : 1,
+            deuda_total:1,
+            id :0,
+            
+        } 
+    }
+]);
 
 
 
